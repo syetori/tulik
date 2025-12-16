@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tört Tülіk – Ойын</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent}
+    body{
+      background:#222;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      display:flex;justify-content:center;align-items:center;width:100vw;height:100vh;overflow:hidden;color:#fff
+    }
+    .game-wrapper{width:1280px;height:720px;position:relative;overflow:hidden;border-radius:18px;background:#000}
+    .game-background{position:absolute;inset:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;z-index:0}
+    .game-layer{position:absolute;inset:0;z-index:1}
+    
+
+    .center-area{position:absolute;left:18%;right:27%;top:18%;bottom:25%}
+
+    .animal{
+      position:absolute;
+      width:120px;height:120px;
+      background-size:contain;background-repeat:no-repeat;background-position:center;
+      transform:translate(-50%,-50%);
+      touch-action:none;
+      cursor:pointer;
+    }
+    .animal[data-animal-id="sheep"]{width:70px;height:70px}
+    .animal[data-animal-id="horse"]{width:160px;height:160px}
+    .animal[data-animal-id="cow"]{width:130px;height:130px}
+    .animal[data-animal-id="camel"]{width:120px;height:120px}
+
+    .pens-area{position:absolute;inset:0;z-index:2;pointer-events:none}
+    .pen{position:absolute;width:210px;height:190px;background:none}
+    .pen-hit{position:absolute;left:12%;right:12%;top:12%;bottom:15%}
+    /* Увеличенная зона доставки для овцы */
+    .pen[data-pen-id="sheep"] .pen-hit{
+      left: -10%;
+      right: -10%;
+      top: -10%;
+      bottom: -10%;
+    }
+
+
+    .pen[data-pen-id="cow"]{right:23%;bottom:10%}
+    .pen[data-pen-id="horse"]{left:1.5%;top:4%}
+    .pen[data-pen-id="camel"]{right:26%;top:3%}
+    .pen[data-pen-id="sheep"]{left:3%;bottom:8%}
+
+    .rope-btn{
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      top:auto;
+      transform:translateX(-50%);
+      width:74px;
+      height:74px;
+    
+      /* НОВОЕ */
+      background: rgba(255,255,255,0.35);   /* полупрозрачный белый */
+      backdrop-filter: blur(6px);            /* стеклянный эффект */
+      -webkit-backdrop-filter: blur(6px);
+      border-radius:18px;
+    
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    
+      box-shadow:
+        0 8px 22px rgba(0,0,0,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.35);
+    
+      cursor:pointer;
+      z-index:5;
+    }
+
+    .rope-btn img{
+      width:58px;height:58px;object-fit:contain;pointer-events:none;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+    }
+    
+    .rope-btn.active{
+      outline:none;
+      transform: translateX(-50%) scale(1.02);
+      box-shadow:
+        0 10px 28px rgba(0,0,0,0.45),
+        0 0 0 3px rgba(255,215,106,0.55),
+        inset 0 0 0 1px rgba(255,255,255,0.45);
+    }
+
+    /* Нить (SVG линия) */
+    .rope-svg{
+      position:absolute;inset:0;
+      z-index:4;
+      pointer-events:none;
+    }
+    .rope-line{
+      stroke: rgba(255, 223, 120, 0.95);
+      stroke-width: 4;
+      stroke-linecap: round;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+    }
+    .rope-knot{
+      fill:#ffe9a8;
+      stroke:#c28b2c;
+      stroke-width:2;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
+    }
+    .top-pen-icon{
+      position:absolute;
+      top:12px;
+      left:50%;
+      transform:translateX(-50%);
+      width:92px;
+      height:70px;
+      background-size:contain;
+      background-repeat:no-repeat;
+      background-position:center;
+      opacity:0;
+      transition:opacity .12s ease;
+      z-index:6;
+      pointer-events:none;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,0.35));
+    }
+    .top-pen-icon.show{ opacity:1; }
+
+
+    /* Стартовое видео */
+    .start-overlay{
+      position:absolute;inset:0;background:rgba(0,0,0,0.72);
+      display:flex;align-items:center;justify-content:center;z-index:20;
+    }
+    .start-panel{
+      width:760px;max-width:92%;
+      background:#101010;border-radius:22px;
+      padding:16px 16px 18px;
+      box-shadow:0 14px 50px rgba(0,0,0,0.55);
+    }
+    .start-title{font-size:18px;font-weight:700;text-align:center;margin:6px 0 10px}
+    .start-video-wrap{position:relative;border-radius:16px;overflow:hidden;background:#000}
+    .start-video{width:100%;display:block;background:#000}
+    .start-play{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;
+      background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.08), rgba(0,0,0,0.55));
+    }
+    .play-btn{
+      width:92px;height:92px;border-radius:999px;
+      background:rgba(255,215,106,0.95);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 14px 30px rgba(0,0,0,0.45);
+      transform:scale(1);
+      transition:transform .12s ease;
+    }
+    .start-play:active .play-btn{transform:scale(0.97)}
+    .triangle{
+      width:0;height:0;margin-left:6px;
+      border-left:28px solid #3a2600;
+      border-top:18px solid transparent;
+      border-bottom:18px solid transparent;
+    }
+    .start-hint{margin-top:10px;text-align:center;font-size:14px;color:#cfcfcf}
+
+    /* Подсказка-оверлей */
+    .hint-overlay{
+      position:absolute;inset:0;background:rgba(0,0,0,0.55);
+      display:none;align-items:center;justify-content:center;z-index:15;
+    }
+    .hint-panel{
+      background: rgba(0,0,0,0.65);
+      border-radius:18px;
+      padding:16px 16px 14px;
+      color:#fff;
+      box-shadow:0 16px 45px rgba(0,0,0,0.55);
+      text-align:center;
+      position:relative;
+      border:1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(6px);
+    }
+    .hint-panel h3{
+      font-size:16px;
+      margin:4px 0 10px;
+      color:#ffe9a8;
+    }
+    .hint-pen-img{
+      width:220px;height:160px;
+      margin:0 auto 10px;
+      background-size:contain;background-repeat:no-repeat;background-position:center;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,0.25));
+    }
+    .hint-ok{
+      border:none;border-radius:999px;
+      padding:8px 16px;
+      font-weight:700;
+      background:linear-gradient(135deg,#ffdd73,#ffc54a);
+      cursor:pointer;
+      color:#3d2600;
+    }
+    .hint-ok:active{transform:scale(0.98)}
+
+    /* Финал */
+    .final-overlay{
+      position:absolute;inset:0;background:rgba(0,0,0,0.65);
+      display:none;align-items:center;justify-content:center;z-index:30;
+    }
+    .final-panel{
+      width:520px;max-width:90%;
+      background:#fff;border-radius:22px;
+      padding:30px 24px 24px;text-align:center;position:relative;overflow:hidden;color:#222;
+    }
+    .final-title{font-size:40px;font-weight:900;color:#c79a16;text-shadow:0 0 12px rgba(255,215,0,0.6);margin-bottom:14px}
+    .final-button{
+      margin-top:10px;padding:10px 26px;border-radius:999px;border:none;
+      font-size:17px;font-weight:700;cursor:pointer;
+      background:linear-gradient(135deg,#ffdd73,#ffc54a);color:#3d2600;
+    }
+    .final-button:active{transform:scale(0.97)}
+    .fireworks{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+    .firework-dot{
+      position:absolute;width:10px;height:10px;border-radius:50%;
+      background:#ffd54f;animation:fw 1.2s ease-out infinite;opacity:0
+    }
+    @keyframes fw{
+      0%{transform:translate(0,0) scale(0.2);opacity:0}
+      30%{opacity:1}
+      100%{transform:translate(var(--dx),var(--dy)) scale(0.2);opacity:0}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game-wrapper" id="game">
+    <div class="game-background" id="bg"></div>
+
+    <!-- Нить поверх поля -->
+    <svg class="rope-svg" id="ropeSvg">
+      <line class="rope-line" id="ropeLine" x1="0" y1="0" x2="0" y2="0" opacity="0"></line>
+      <circle class="rope-knot" id="ropeKnot" cx="0" cy="0" r="7" opacity="0"></circle>
+    </svg>
+
+    <div class="game-layer">
+      <div class="center-area" id="centerArea"></div>
+
+      <div class="pens-area">
+        <div class="pen" data-pen-id="cow"><div class="pen-hit" data-pen-hit="cow"></div></div>
+        <div class="pen" data-pen-id="horse"><div class="pen-hit" data-pen-hit="horse"></div></div>
+        <div class="pen" data-pen-id="camel"><div class="pen-hit" data-pen-hit="camel"></div></div>
+        <div class="pen" data-pen-id="sheep"><div class="pen-hit" data-pen-hit="sheep"></div></div>
+      </div>
+      
+      <div class="top-pen-icon" id="topPenIcon"></div>
+          
+      <!-- PNG-кнопка поводка -->
+      <div class="rope-btn" id="ropeBtn" title="Поводок">
+        <img id="ropeIcon" alt="rope" />
+      </div>
+    </div>
+
+    <!-- Стартовое видео -->
+    <div class="start-overlay" id="startOverlay">
+      <div class="start-panel">
+        <div class="start-title">Ойынды бастау</div>
+        <div class="start-video-wrap">
+          <video class="start-video" id="startVideo" playsinline></video>
+          <div class="start-play" id="startPlay">
+            <div class="play-btn"><div class="triangle"></div></div>
+          </div>
+        </div>
+        <div class="start-hint">▶ Басып, видеоны қара да — ойын басталады</div>
+      </div>
+    </div>
+
+    <!-- Подсказка -->
+    <div class="hint-overlay" id="hintOverlay">
+      <div class="hint-panel">
+        <h3 id="hintTitle">Қай қора?</h3>
+        <div class="hint-pen-img" id="hintPenImg"></div>
+        <button class="hint-ok" id="hintOk">Түсіндім</button>
+      </div>
+    </div>
+
+    <!-- Финал -->
+    <div class="final-overlay" id="finalOverlay">
+      <div class="final-panel">
+        <div class="fireworks" id="fireworks"></div>
+        <div class="final-title">Жеңіс!</div>
+        <div style="font-size:16px;color:#444;margin-bottom:14px;">Барлық төрт түлік өз қораларында!</div>
+        <button class="final-button" id="restartBtn">Басынан бастау</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ================== ASSETS ==================
+  var ASSETS = {
+    background: "https://files.catbox.moe/gu4d8s.jpg",
+    pens: {
+      cow: "https://files.catbox.moe/8d0zy4.webp",
+      horse: "https://files.catbox.moe/z8k2bw.webp",
+      camel: "https://files.catbox.moe/45c02p.webp",
+      sheep: "https://files.catbox.moe/pcgt1o.webp"
+    },
+    animals: {
+      cow: "https://files.catbox.moe/gzgqqm.png",
+      horse: "https://files.catbox.moe/mhx3i3.png",
+      camel: "https://files.catbox.moe/bepdup.png",
+      sheep: "https://files.catbox.moe/oz2zjj.png"
+    },
+
+    // ВСТАВИШЬ СВОИ ССЫЛКИ:
+    introVideo: "https://files.catbox.moe/e9o2gl.mp4",
+    ropeIcon: "https://files.catbox.moe/r1ppdm.webp"
+  };
+
+  // ================== DOM ==================
+  var gameEl = document.getElementById("game");
+  var bgEl = document.getElementById("bg");
+  var centerArea = document.getElementById("centerArea");
+
+  var pens = Array.prototype.slice.call(document.querySelectorAll(".pen"));
+  var penHits = Array.prototype.slice.call(document.querySelectorAll(".pen-hit"));
+
+  var ropeBtn = document.getElementById("ropeBtn");
+  var ropeIcon = document.getElementById("ropeIcon");
+
+  var ropeSvg = document.getElementById("ropeSvg");
+  var ropeLine = document.getElementById("ropeLine");
+  var ropeKnot = document.getElementById("ropeKnot");
+
+  var startOverlay = document.getElementById("startOverlay");
+  var startVideo = document.getElementById("startVideo");
+  var startPlay = document.getElementById("startPlay");
+
+  var hintOverlay = document.getElementById("hintOverlay");
+  var hintPenImg = document.getElementById("hintPenImg");
+  var hintTitle = document.getElementById("hintTitle");
+  var hintOk = document.getElementById("hintOk");
+
+  var finalOverlay = document.getElementById("finalOverlay");
+  var restartBtn = document.getElementById("restartBtn");
+  var fireworks = document.getElementById("fireworks");
+
+  // ================== INIT GRAPHICS ==================
+  bgEl.style.backgroundImage = "url('" + ASSETS.background + "')";
+  ropeIcon.src = ASSETS.ropeIcon;
+
+  pens.forEach(function(p){
+    var id = p.getAttribute("data-pen-id");
+    if (ASSETS.pens[id]) p.style.backgroundImage = "url('" + ASSETS.pens[id] + "')";
+  });
+
+  // ================== GAME STATE ==================
+  var gameRect = gameEl.getBoundingClientRect();
+  var centerRect = centerArea.getBoundingClientRect();
+
+  var animals = [];
+  var animalOrder = ["cow","horse","camel","sheep"];
+
+  // поводок
+  var gameStarted = false;
+  var ropeTaken = false;          // “взял поводок”
+  var dragging = false;           // тащим курсором
+  var attachedAnimal = null;      // текущее животное
+  var ropePos = {x:0,y:0};        // куда ведём (курсор)
+  var allPlaced = false;
+
+  // ================== START VIDEO ==================
+  startVideo.src = ASSETS.introVideo || "";
+  startVideo.controls = false;
+  
+  var topPenIcon = document.getElementById("topPenIcon");
+  
+  // ================== PEN TARGET ==================
+  function targetPenId(animalId){
+    // сейчас: загон = животное (cow->cow, horse->horse, camel->camel, sheep->sheep)
+    return animalId;
+  }
+
+  function showTopPenIconFor(animal){
+    if (!animal) { topPenIcon.classList.remove("show"); return; }
+    var pid = targetPenId(animal.id);
+    topPenIcon.style.backgroundImage = "url('" + (ASSETS.pens[pid] || "") + "')";
+    topPenIcon.classList.add("show");
+  }
+  function hideTopPenIcon(){
+    topPenIcon.classList.remove("show");
+  }
+
+
+  function beginGame(){
+    gameStarted = true;
+    startOverlay.style.display = "none";
+    // на всякий случай пересчёт размеров
+    gameRect = gameEl.getBoundingClientRect();
+    centerRect = centerArea.getBoundingClientRect();
+    createAnimals();
+  }
+
+  startPlay.addEventListener("click", function(){
+    // запускаем видео по жесту — иначе браузер может блокнуть
+    startPlay.style.display = "none";
+    startVideo.currentTime = 0;
+    startVideo.play().catch(function(){
+      // если вдруг блок, просто покажем controls
+      startVideo.controls = true;
+    });
+
+    function end(){
+      startVideo.removeEventListener("ended", end);
+      beginGame();
+    }
+    startVideo.addEventListener("ended", end);
+
+    // если пользователь сам остановил — можно тапнуть ещё раз
+    startVideo.onpause = function(){
+      if (!gameStarted) startPlay.style.display = "flex";
+    };
+  });
+
+  // ================== CREATE ANIMALS ==================
+  function randomCenterPos(existing){
+    var r = centerArea.getBoundingClientRect();
+    var tries = 0;
+    while(true){
+      var x = r.left + r.width * (0.22 + 0.56 * Math.random());
+      var y = r.top + r.height * (0.22 + 0.56 * Math.random());
+      var ok = true;
+      for(var i=0;i<existing.length;i++){
+        var dx = existing[i].x - x;
+        var dy = existing[i].y - y;
+        if (Math.sqrt(dx*dx+dy*dy) < 150) { ok = false; break; }
+      }
+      if (ok || tries > 30) return {x:x,y:y};
+      tries++;
+    }
+  }
+
+  function setAnimalPosition(a){
+    var r = centerArea.getBoundingClientRect();
+    a.el.style.left = (a.x - r.left) + "px";
+    a.el.style.top  = (a.y - r.top)  + "px";
+  }
+
+  function createAnimals(){
+    // чистим
+    animals.forEach(function(a){
+      if (a.el && a.el.parentNode) a.el.parentNode.removeChild(a.el);
+    });
+    animals = [];
+    attachedAnimal = null;
+    ropeTaken = false;
+    dragging = false;
+    ropeBtn.classList.remove("active");
+    hideRopeLine();
+    hideTopPenIcon();
+
+    var used = [];
+    for (var i=0;i<animalOrder.length;i++){
+      var id = animalOrder[i];
+      var el = document.createElement("div");
+      el.className = "animal";
+      el.dataset.animalId = id;
+      el.style.backgroundImage = "url('" + ASSETS.animals[id] + "')";
+      centerArea.appendChild(el);
+
+      var p = randomCenterPos(used);
+      used.push(p);
+
+      var obj = {
+        id:id, el:el,
+        x:p.x, y:p.y,
+        vx:(Math.random()*0.06 - 0.03),
+        vy:(Math.random()*0.06 - 0.03),
+        placed:false
+      };
+
+      setAnimalPosition(obj);
+      el.addEventListener("click", onAnimalClick);
+      animals.push(obj);
+    }
+  }
+
+  // ================== HIT TEST ==================
+  function rectsIntersect(a, b){
+    return !(b.left > a.right || b.right < a.left || b.top > a.bottom || b.bottom < a.top);
+  }
+
+  function getPenHitRect(id){
+    var hit = penHits.find(function(h){ return h.getAttribute("data-pen-hit") === id; });
+    return hit ? hit.getBoundingClientRect() : null;
+  }
+
+  // ================== HINT OVERLAY ==================
+  var hintTimer = null;
+  function showHintFor(animal){
+    hintTitle.textContent = "Дұрыс қора — осы!";
+    var pid = targetPenId(animal.id);
+    hintPenImg.style.backgroundImage = "url('" + (ASSETS.pens[pid] || "") + "')";
+    hintOverlay.style.display = "flex";
+
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function(){
+      hintOverlay.style.display = "none";
+    }, 1200);
+  }
+
+  hintOk.onclick = function(){
+    hintOverlay.style.display = "none";
+  };
+
+  // ================== ROPE LOGIC ==================
+  ropeBtn.addEventListener("click", function(e){
+    if (!gameStarted) return;
+
+    // брать/сдавать поводок
+    ropeTaken = !ropeTaken;
+
+    if (!ropeTaken){
+      dragging = false;
+      if (attachedAnimal) attachedAnimal = null;
+      ropeBtn.classList.remove("active");
+      hideRopeLine();
+      hideTopPenIcon();
+    } else {
+      ropeBtn.classList.add("active");
+      // ставим узелок у кнопки
+      var r = ropeBtn.getBoundingClientRect();
+      ropePos.x = r.left + r.width/2;
+      ropePos.y = r.top + r.height/2;
+      updateRopeLine();
+    }
+    e.stopPropagation();
+  });
+
+  function onAnimalClick(e){
+    if (!gameStarted) return;
+    if (!ropeTaken) return;             // нельзя без поводка
+    if (attachedAnimal) return;         // уже ведём кого-то
+    var id = this.dataset.animalId;
+    var a = animals.find(function(x){return x.id===id;});
+    if (!a || a.placed) return;
+
+    attachedAnimal = a;
+    showTopPenIconFor(a);
+    
+    // подсказка “куда вести”
+    showHintFor(a);
+
+    // после выбора животного — сразу начинаем тянуть
+    dragging = true;
+
+    // стартовую точку “куда тянем” ставим рядом с животным, чтобы не дёргало
+    ropePos.x = a.x;
+    ropePos.y = a.y;
+
+    updateRopeLine();
+  }
+
+  function pointerPosFromEvent(ev){
+    if (ev.touches && ev.touches.length) return {x: ev.touches[0].clientX, y: ev.touches[0].clientY};
+    if (ev.changedTouches && ev.changedTouches.length) return {x: ev.changedTouches[0].clientX, y: ev.changedTouches[0].clientY};
+    return {x: ev.clientX, y: ev.clientY};
+  }
+
+  function onPointerDown(ev){
+    if (!ropeTaken || !attachedAnimal) return;
+    dragging = true;
+    var p = pointerPosFromEvent(ev);
+    ropePos.x = p.x; ropePos.y = p.y;
+    updateRopeLine();
+  }
+
+  function onPointerMove(ev){
+    if (!ropeTaken || !attachedAnimal || !dragging) return;
+    var p = pointerPosFromEvent(ev);
+    ropePos.x = p.x; ropePos.y = p.y;
+    updateRopeLine();
+  }
+
+  function onPointerUp(ev){
+    dragging = false;
+  }
+
+  gameEl.addEventListener("mousedown", onPointerDown);
+  window.addEventListener("mousemove", onPointerMove);
+  window.addEventListener("mouseup", onPointerUp);
+
+  gameEl.addEventListener("touchstart", function(e){ onPointerDown(e); }, {passive:false});
+  window.addEventListener("touchmove", function(e){ onPointerMove(e); }, {passive:false});
+  window.addEventListener("touchend", function(e){ onPointerUp(e); }, {passive:false});
+
+    function updateRopeLine(){
+      if (!ropeTaken || !attachedAnimal){
+        hideRopeLine();
+        return;
+      }
+    
+      ropeLine.setAttribute("opacity", "1");
+      ropeKnot.setAttribute("opacity", "0"); // если узелок не нужен — скрываем
+    
+      // начало верёвки — у животного (чуть выше центра)
+      var x1 = attachedAnimal.x;
+      var y1 = attachedAnimal.y - 18;
+    
+      // конец верёвки — туда, куда ведёшь
+      var x2 = ropePos.x;
+      var y2 = ropePos.y;
+    
+      ropeLine.setAttribute("x1", x1 - gameRect.left);
+      ropeLine.setAttribute("y1", y1 - gameRect.top);
+      ropeLine.setAttribute("x2", x2 - gameRect.left);
+      ropeLine.setAttribute("y2", y2 - gameRect.top);
+    }
+
+  function hideRopeLine(){
+    ropeLine.setAttribute("opacity", "0");
+    ropeKnot.setAttribute("opacity", "0");
+  }
+
+  // ================== PLACE CHECK ==================
+  function handlePlaceCheck(a){
+    if (a.placed) return;
+
+    var ar = a.el.getBoundingClientRect();
+    var pid = targetPenId(a.id);
+    var correctRect = getPenHitRect(pid);
+
+    if (correctRect && rectsIntersect(ar, correctRect)){
+      // магнитим в центр загона
+    var pen = pens.find(function(p){ return p.getAttribute("data-pen-id")===pid; });
+      if (pen){
+        var pr = pen.getBoundingClientRect();
+        a.x = pr.left + pr.width/2;
+        a.y = pr.top + pr.height*0.55;
+        setAnimalPosition(a);
+      }
+
+      a.placed = true;
+
+      // ВАЖНО: после одного животного — поводок “сдается”
+      attachedAnimal = null;
+      hideTopPenIcon();
+      ropeTaken = false;
+      dragging = false;
+      ropeBtn.classList.remove("active");
+      hideRopeLine();
+
+      checkAllPlaced();
+    }
+  }
+
+  function checkAllPlaced(){
+    var ok = animals.every(function(a){ return a.placed; });
+    if (!ok) return;
+
+    allPlaced = true;
+    showFinalOverlay();
+  }
+
+  function showFinalOverlay(){
+    finalOverlay.style.display = "flex";
+    fireworks.innerHTML = "";
+    for (var i=0;i<20;i++){
+      var d = document.createElement("div");
+      d.className = "firework-dot";
+      var angle = Math.random()*Math.PI*2;
+      var dist = 80 + Math.random()*80;
+      d.style.left = 50 + (Math.random()*40-20) + "%";
+      d.style.top  = 30 + (Math.random()*30-15) + "%";
+      d.style.setProperty("--dx", Math.cos(angle)*dist + "px");
+      d.style.setProperty("--dy", Math.sin(angle)*dist + "px");
+      d.style.animationDelay = (Math.random()*0.8) + "s";
+      fireworks.appendChild(d);
+    }
+  }
+
+  restartBtn.onclick = function(){
+    finalOverlay.style.display = "none";
+    allPlaced = false;
+    createAnimals();
+  };
+
+  // ================== LOOP ==================
+  var lastTime = performance.now();
+
+  function loop(now){
+    var dt = now - lastTime;
+    if (dt > 60) dt = 60;
+    var seconds = dt / 1000;
+
+    if (gameStarted && !allPlaced){
+      gameRect = gameEl.getBoundingClientRect();
+      centerRect = centerArea.getBoundingClientRect();
+
+      var cr = centerRect;
+
+      animals.forEach(function(a){
+        if (a.placed) return;
+
+        if (attachedAnimal === a && ropeTaken){
+          // улучшенная “поводковая” физика: пружина к ropePos
+          var dx = (ropePos.x - a.x);
+          var dy = (ropePos.y - a.y);
+
+          // сила притяжения
+          var pull = 10.5;
+          a.vx += dx * pull * seconds * 0.02;
+          a.vy += dy * pull * seconds * 0.02;
+
+          // трение
+          a.vx *= 0.92;
+          a.vy *= 0.92;
+
+          // ограничение скорости (чтобы не улетали)
+          var maxV = 0.45;
+          if (a.vx > maxV) a.vx = maxV;
+          if (a.vx < -maxV) a.vx = -maxV;
+          if (a.vy > maxV) a.vy = maxV;
+          if (a.vy < -maxV) a.vy = -maxV;
+
+          a.x += a.vx * seconds * 260;
+          a.y += a.vy * seconds * 260;
+
+          // границы центра
+          var marginX = cr.width*0.06;
+          var marginY = cr.height*0.06;
+          if (a.x < cr.left + marginX) { a.x = cr.left + marginX; a.vx = 0; }
+          if (a.x > cr.right - marginX){ a.x = cr.right - marginX; a.vx = 0; }
+          if (a.y < cr.top + marginY)  { a.y = cr.top + marginY; a.vy = 0; }
+          if (a.y > cr.bottom - marginY){a.y = cr.bottom - marginY; a.vy = 0; }
+
+          setAnimalPosition(a);
+          handlePlaceCheck(a);
+          updateRopeLine();
+
+        } else {
+          // обычное “брожение” пока не поймали
+          a.vx += (Math.random()*0.04 - 0.02) * seconds;
+          a.vy += (Math.random()*0.04 - 0.02) * seconds;
+
+          var maxW = 0.06;
+          if (a.vx > maxW) a.vx = maxW;
+          if (a.vx < -maxW) a.vx = -maxW;
+          if (a.vy > maxW) a.vy = maxW;
+          if (a.vy < -maxW) a.vy = -maxW;
+
+          a.x += a.vx * seconds * 220;
+          a.y += a.vy * seconds * 220;
+
+          var mx = cr.width*0.05;
+          var my = cr.height*0.05;
+          if (a.x < cr.left + mx) { a.x = cr.left + mx; a.vx = -a.vx; }
+          if (a.x > cr.right - mx){ a.x = cr.right - mx; a.vx = -a.vx; }
+          if (a.y < cr.top + my)  { a.y = cr.top + my; a.vy = -a.vy; }
+          if (a.y > cr.bottom - my){a.y = cr.bottom - my; a.vy = -a.vy; }
+
+          setAnimalPosition(a);
+        }
+      });
+    }
+
+    lastTime = now;
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(function(t){ lastTime=t; loop(t); });
+
+  window.addEventListener("resize", function(){
+    gameRect = gameEl.getBoundingClientRect();
+    centerRect = centerArea.getBoundingClientRect();
+    updateRopeLine();
+  });
+
+</script>
+</body>
+</html>
