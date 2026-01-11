@@ -498,12 +498,8 @@
     var pid = targetPenId(animal.id);
     hintPenImg.style.backgroundImage = "url('" + (ASSETS.pens[pid] || "") + "')";
     hintOverlay.style.display = "flex";
-
-    clearTimeout(hintTimer);
-    hintTimer = setTimeout(function(){
-      hintOverlay.style.display = "none";
-    }, 1200);
   }
+
 
   hintOk.onclick = function(){
     hintOverlay.style.display = "none";
