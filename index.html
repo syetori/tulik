@@ -7,11 +7,31 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent}
     body{
-      background:#222;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      display:flex;justify-content:center;align-items:center;width:100vw;height:100vh;overflow:hidden;color:#fff
-    }
-    .game-wrapper{width:1280px;height:720px;position:relative;overflow:hidden;border-radius:18px;background:#000}
-    .game-background{position:absolute;inset:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;z-index:0}
+  margin:0;
+  background:#222;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  width:100vw;height:100vh;
+  overflow:hidden;
+  color:#fff;
+
+  /* важно: больше НЕ flex */
+  display:block;
+}
+    .game-wrapper{
+  width:1280px;
+  height:720px;
+  position:fixed;
+  left:50%;
+  top:50%;
+  overflow:hidden;
+  border-radius:18px;
+  background:#000;
+
+  /* магия: масштаб без растяжения */
+  transform: translate(-50%, -50%) scale(var(--scale, 1));
+  transform-origin: center;
+}
+.game-background{position:absolute;inset:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;z-index:0}
     .game-layer{position:absolute;inset:0;z-index:1}
     
 
@@ -762,11 +782,60 @@
 
   requestAnimationFrame(function(t){ lastTime=t; loop(t); });
 
-  window.addEventListener("resize", function(){
-    gameRect = gameEl.getBoundingClientRect();
-    centerRect = centerArea.getBoundingClientRect();
+// ================== FIT (NO STRETCH) + RESCALE POSITIONS ==================
+var lastCenterRectForScale = null;
+var lastGameRectForScale = null;
+
+function fitGame(){
+  var baseW = 1280;
+  var baseH = 720;
+
+  // Ескі rect-терді сақтап аламыз (масштаб ауыспай тұрып)
+  var oldCenter = centerArea.getBoundingClientRect();
+  var oldGame = gameEl.getBoundingClientRect();
+
+  var scale = Math.min(window.innerWidth / baseW, window.innerHeight / baseH);
+  document.documentElement.style.setProperty("--scale", String(scale));
+
+  // transform қолданылғаннан кейін браузер жаңа өлшемді келесі кадрда нақтылайды
+  requestAnimationFrame(function(){
+    // Жаңа rect-тер
+    var newCenter = centerArea.getBoundingClientRect();
+    var newGame = gameEl.getBoundingClientRect();
+
+    // Коэффициенттер (әдетте бірдей, бірақ қауіпсіз болу үшін бөлек аламыз)
+    var kx = newCenter.width / oldCenter.width;
+    var ky = newCenter.height / oldCenter.height;
+
+    // Жануарлардың координаттарын жаңа центр-аймаққа пропорционал көшіру
+    animals.forEach(function(a){
+      if (a.placed) return;
+
+      a.x = newCenter.left + (a.x - oldCenter.left) * kx;
+      a.y = newCenter.top  + (a.y - oldCenter.top)  * ky;
+
+      setAnimalPosition(a);
+    });
+
+    // Егер сүйреп жатсаң — ropePos та бірге жылжысын
+    if (attachedAnimal && ropeTaken){
+      ropePos.x = newCenter.left + (ropePos.x - oldCenter.left) * kx;
+      ropePos.y = newCenter.top  + (ropePos.y - oldCenter.top)  * ky;
+    }
+
+    // Жаңартып қоямыз
+    gameRect = newGame;
+    centerRect = newCenter;
     updateRopeLine();
+
+    lastCenterRectForScale = newCenter;
+    lastGameRectForScale = newGame;
   });
+}
+
+window.addEventListener("resize", fitGame, {passive:true});
+fitGame();
+
 
 </script>
 </body>
