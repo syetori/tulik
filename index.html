@@ -7,33 +7,30 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent}
     body{
-  margin:0;
-  background:#222;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  width:100vw;height:100vh;
-  overflow:hidden;
-  color:#fff;
-
-  /* важно: больше НЕ flex */
-  display:block;
-}
+      margin:0;
+      background:#222;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      width:100vw;height:100vh;
+      overflow:hidden;
+      color:#fff;
+      display:block;
+    }
     .game-wrapper{
-  width:1280px;
-  height:720px;
-  position:fixed;
-  left:50%;
-  top:50%;
-  overflow:hidden;
-  border-radius:18px;
-  background:#000;
+      width:1280px;
+      height:720px;
+      position:fixed;
+      left:50%;
+      top:50%;
+      overflow:hidden;
+      border-radius:18px;
+      background:#000;
 
-  /* магия: масштаб без растяжения */
-  transform: translate(-50%, -50%) scale(var(--scale, 1));
-  transform-origin: center;
-}
-.game-background{position:absolute;inset:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;z-index:0}
+      transform: translate(-50%, -50%) scale(var(--scale, 1));
+      transform-origin: center;
+    }
+
+    .game-background{position:absolute;inset:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;z-index:0}
     .game-layer{position:absolute;inset:0;z-index:1}
-    
 
     .center-area{position:absolute;left:18%;right:27%;top:18%;bottom:25%}
 
@@ -53,14 +50,7 @@
     .pens-area{position:absolute;inset:0;z-index:2;pointer-events:none}
     .pen{position:absolute;width:210px;height:190px;background:none}
     .pen-hit{position:absolute;left:12%;right:12%;top:12%;bottom:15%}
-    /* Увеличенная зона доставки для овцы */
-    .pen[data-pen-id="sheep"] .pen-hit{
-      left: -10%;
-      right: -10%;
-      top: -10%;
-      bottom: -10%;
-    }
-
+    .pen[data-pen-id="sheep"] .pen-hit{left:-10%;right:-10%;top:-10%;bottom:-10%}
 
     .pen[data-pen-id="cow"]{right:23%;bottom:10%}
     .pen[data-pen-id="horse"]{left:1.5%;top:4%}
@@ -75,21 +65,20 @@
       transform:translateX(-50%);
       width:74px;
       height:74px;
-    
-      /* НОВОЕ */
-      background: rgba(255,255,255,0.35);   /* полупрозрачный белый */
-      backdrop-filter: blur(6px);            /* стеклянный эффект */
+
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       border-radius:18px;
-    
+
       display:flex;
       align-items:center;
       justify-content:center;
-    
+
       box-shadow:
         0 8px 22px rgba(0,0,0,0.35),
         inset 0 0 0 1px rgba(255,255,255,0.35);
-    
+
       cursor:pointer;
       z-index:5;
     }
@@ -98,7 +87,7 @@
       width:58px;height:58px;object-fit:contain;pointer-events:none;
       filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
     }
-    
+
     .rope-btn.active{
       outline:none;
       transform: translateX(-50%) scale(1.02);
@@ -108,7 +97,6 @@
         inset 0 0 0 1px rgba(255,255,255,0.45);
     }
 
-    /* Нить (SVG линия) */
     .rope-svg{
       position:absolute;inset:0;
       z-index:4;
@@ -144,8 +132,6 @@
     }
     .top-pen-icon.show{ opacity:1; }
 
-
-    /* Стартовое видео */
     .start-overlay{
       position:absolute;inset:0;background:rgba(0,0,0,0.72);
       display:flex;align-items:center;justify-content:center;z-index:20;
@@ -182,7 +168,6 @@
     }
     .start-hint{margin-top:10px;text-align:center;font-size:14px;color:#cfcfcf}
 
-    /* Подсказка-оверлей */
     .hint-overlay{
       position:absolute;inset:0;background:rgba(0,0,0,0.55);
       display:none;align-items:center;justify-content:center;z-index:15;
@@ -219,7 +204,6 @@
     }
     .hint-ok:active{transform:scale(0.98)}
 
-    /* Финал */
     .final-overlay{
       position:absolute;inset:0;background:rgba(0,0,0,0.65);
       display:none;align-items:center;justify-content:center;z-index:30;
@@ -253,7 +237,6 @@
   <div class="game-wrapper" id="game">
     <div class="game-background" id="bg"></div>
 
-    <!-- Нить поверх поля -->
     <svg class="rope-svg" id="ropeSvg">
       <line class="rope-line" id="ropeLine" x1="0" y1="0" x2="0" y2="0" opacity="0"></line>
       <circle class="rope-knot" id="ropeKnot" cx="0" cy="0" r="7" opacity="0"></circle>
@@ -268,16 +251,14 @@
         <div class="pen" data-pen-id="camel"><div class="pen-hit" data-pen-hit="camel"></div></div>
         <div class="pen" data-pen-id="sheep"><div class="pen-hit" data-pen-hit="sheep"></div></div>
       </div>
-      
+
       <div class="top-pen-icon" id="topPenIcon"></div>
-          
-      <!-- PNG-кнопка поводка -->
+
       <div class="rope-btn" id="ropeBtn" title="Поводок">
         <img id="ropeIcon" alt="rope" />
       </div>
     </div>
 
-    <!-- Стартовое видео -->
     <div class="start-overlay" id="startOverlay">
       <div class="start-panel">
         <div class="start-title">Ойынды бастау</div>
@@ -291,7 +272,6 @@
       </div>
     </div>
 
-    <!-- Подсказка -->
     <div class="hint-overlay" id="hintOverlay">
       <div class="hint-panel">
         <h3 id="hintTitle">Қай қора?</h3>
@@ -300,7 +280,6 @@
       </div>
     </div>
 
-    <!-- Финал -->
     <div class="final-overlay" id="finalOverlay">
       <div class="final-panel">
         <div class="fireworks" id="fireworks"></div>
@@ -327,8 +306,6 @@
       camel: "https://files.catbox.moe/bepdup.png",
       sheep: "https://files.catbox.moe/oz2zjj.png"
     },
-
-    // ВСТАВИШЬ СВОИ ССЫЛКИ:
     introVideo: "https://files.catbox.moe/e9o2gl.mp4",
     ropeIcon: "https://files.catbox.moe/r1ppdm.webp"
   };
@@ -344,7 +321,6 @@
   var ropeBtn = document.getElementById("ropeBtn");
   var ropeIcon = document.getElementById("ropeIcon");
 
-  var ropeSvg = document.getElementById("ropeSvg");
   var ropeLine = document.getElementById("ropeLine");
   var ropeKnot = document.getElementById("ropeKnot");
 
@@ -370,32 +346,57 @@
     if (ASSETS.pens[id]) p.style.backgroundImage = "url('" + ASSETS.pens[id] + "')";
   });
 
-  // ================== GAME STATE ==================
-  var gameRect = gameEl.getBoundingClientRect();
-  var centerRect = centerArea.getBoundingClientRect();
+  // ================== FIXED GAME COORDS (1280x720 space) ==================
+  var SCALE = 1;
+  var BASE_W = 1280;
+  var BASE_H = 720;
 
+  var gameRect = gameEl.getBoundingClientRect();
+
+  function toGamePoint(clientX, clientY){
+    return {
+      x: (clientX - gameRect.left) / SCALE,
+      y: (clientY - gameRect.top)  / SCALE
+    };
+  }
+
+  function rectToGameRect(r){
+    var p1 = toGamePoint(r.left, r.top);
+    var p2 = toGamePoint(r.right, r.bottom);
+    return { left:p1.x, top:p1.y, right:p2.x, bottom:p2.y, width:(p2.x-p1.x), height:(p2.y-p1.y) };
+  }
+
+  function fitGame(){
+    SCALE = Math.min(window.innerWidth / BASE_W, window.innerHeight / BASE_H);
+    document.documentElement.style.setProperty("--scale", String(SCALE));
+
+    requestAnimationFrame(function(){
+      gameRect = gameEl.getBoundingClientRect();
+      updateRopeLine();
+    });
+  }
+
+  window.addEventListener("resize", fitGame, {passive:true});
+  fitGame();
+
+  // ================== GAME STATE ==================
   var animals = [];
   var animalOrder = ["cow","horse","camel","sheep"];
 
-  // поводок
   var gameStarted = false;
-  var ropeTaken = false;          // “взял поводок”
-  var dragging = false;           // тащим курсором
-  var attachedAnimal = null;      // текущее животное
-  var ropePos = {x:0,y:0};        // куда ведём (курсор)
+  var ropeTaken = false;
+  var dragging = false;
+  var attachedAnimal = null;
+  var ropePos = {x:0,y:0};   // ВАЖНО: теперь это GAME coords
   var allPlaced = false;
 
   // ================== START VIDEO ==================
   startVideo.src = ASSETS.introVideo || "";
   startVideo.controls = false;
-  
+
   var topPenIcon = document.getElementById("topPenIcon");
-  
-  // ================== PEN TARGET ==================
-  function targetPenId(animalId){
-    // сейчас: загон = животное (cow->cow, horse->horse, camel->camel, sheep->sheep)
-    return animalId;
-  }
+
+  function targetPenId(animalId){ return animalId; }
 
   function showTopPenIconFor(animal){
     if (!animal) { topPenIcon.classList.remove("show"); return; }
@@ -403,28 +404,18 @@
     topPenIcon.style.backgroundImage = "url('" + (ASSETS.pens[pid] || "") + "')";
     topPenIcon.classList.add("show");
   }
-  function hideTopPenIcon(){
-    topPenIcon.classList.remove("show");
-  }
-
+  function hideTopPenIcon(){ topPenIcon.classList.remove("show"); }
 
   function beginGame(){
     gameStarted = true;
     startOverlay.style.display = "none";
-    // на всякий случай пересчёт размеров
-    gameRect = gameEl.getBoundingClientRect();
-    centerRect = centerArea.getBoundingClientRect();
     createAnimals();
   }
 
   startPlay.addEventListener("click", function(){
-    // запускаем видео по жесту — иначе браузер может блокнуть
     startPlay.style.display = "none";
     startVideo.currentTime = 0;
-    startVideo.play().catch(function(){
-      // если вдруг блок, просто покажем controls
-      startVideo.controls = true;
-    });
+    startVideo.play().catch(function(){ startVideo.controls = true; });
 
     function end(){
       startVideo.removeEventListener("ended", end);
@@ -432,7 +423,6 @@
     }
     startVideo.addEventListener("ended", end);
 
-    // если пользователь сам остановил — можно тапнуть ещё раз
     startVideo.onpause = function(){
       if (!gameStarted) startPlay.style.display = "flex";
     };
@@ -440,11 +430,12 @@
 
   // ================== CREATE ANIMALS ==================
   function randomCenterPos(existing){
-    var r = centerArea.getBoundingClientRect();
+    // GAME coords
+    var r = rectToGameRect(centerArea.getBoundingClientRect());
     var tries = 0;
     while(true){
       var x = r.left + r.width * (0.22 + 0.56 * Math.random());
-      var y = r.top + r.height * (0.22 + 0.56 * Math.random());
+      var y = r.top  + r.height* (0.22 + 0.56 * Math.random());
       var ok = true;
       for(var i=0;i<existing.length;i++){
         var dx = existing[i].x - x;
@@ -457,13 +448,13 @@
   }
 
   function setAnimalPosition(a){
-    var r = centerArea.getBoundingClientRect();
+    // элемент внутри centerArea: ставим relative к centerArea, но координаты храним в GAME coords
+    var r = rectToGameRect(centerArea.getBoundingClientRect());
     a.el.style.left = (a.x - r.left) + "px";
     a.el.style.top  = (a.y - r.top)  + "px";
   }
 
   function createAnimals(){
-    // чистим
     animals.forEach(function(a){
       if (a.el && a.el.parentNode) a.el.parentNode.removeChild(a.el);
     });
@@ -489,7 +480,7 @@
 
       var obj = {
         id:id, el:el,
-        x:p.x, y:p.y,
+        x:p.x, y:p.y,          // GAME coords
         vx:(Math.random()*0.06 - 0.03),
         vy:(Math.random()*0.06 - 0.03),
         placed:false
@@ -508,65 +499,58 @@
 
   function getPenHitRect(id){
     var hit = penHits.find(function(h){ return h.getAttribute("data-pen-hit") === id; });
-    return hit ? hit.getBoundingClientRect() : null;
+    return hit ? rectToGameRect(hit.getBoundingClientRect()) : null;
   }
 
   // ================== HINT OVERLAY ==================
-  var hintTimer = null;
   function showHintFor(animal){
     hintTitle.textContent = "Дұрыс қора — осы!";
     var pid = targetPenId(animal.id);
     hintPenImg.style.backgroundImage = "url('" + (ASSETS.pens[pid] || "") + "')";
     hintOverlay.style.display = "flex";
   }
-
-
-  hintOk.onclick = function(){
-    hintOverlay.style.display = "none";
-  };
+  hintOk.onclick = function(){ hintOverlay.style.display = "none"; };
 
   // ================== ROPE LOGIC ==================
   ropeBtn.addEventListener("click", function(e){
     if (!gameStarted) return;
 
-    // брать/сдавать поводок
     ropeTaken = !ropeTaken;
 
     if (!ropeTaken){
       dragging = false;
-      if (attachedAnimal) attachedAnimal = null;
+      attachedAnimal = null;
       ropeBtn.classList.remove("active");
       hideRopeLine();
       hideTopPenIcon();
     } else {
       ropeBtn.classList.add("active");
-      // ставим узелок у кнопки
+
+      // позиция кнопки -> GAME coords
       var r = ropeBtn.getBoundingClientRect();
-      ropePos.x = r.left + r.width/2;
-      ropePos.y = r.top + r.height/2;
+      var p = toGamePoint(r.left + r.width/2, r.top + r.height/2);
+      ropePos.x = p.x;
+      ropePos.y = p.y;
+
       updateRopeLine();
     }
     e.stopPropagation();
   });
 
-  function onAnimalClick(e){
+  function onAnimalClick(){
     if (!gameStarted) return;
-    if (!ropeTaken) return;             // нельзя без поводка
-    if (attachedAnimal) return;         // уже ведём кого-то
+    if (!ropeTaken) return;
+    if (attachedAnimal) return;
+
     var id = this.dataset.animalId;
     var a = animals.find(function(x){return x.id===id;});
     if (!a || a.placed) return;
 
     attachedAnimal = a;
     showTopPenIconFor(a);
-    
-    // подсказка “куда вести”
     showHintFor(a);
 
-    // после выбора животного — сразу начинаем тянуть
     dragging = true;
-
-    // стартовую точку “куда тянем” ставим рядом с животным, чтобы не дёргало
     ropePos.x = a.x;
     ropePos.y = a.y;
 
@@ -574,9 +558,12 @@
   }
 
   function pointerPosFromEvent(ev){
-    if (ev.touches && ev.touches.length) return {x: ev.touches[0].clientX, y: ev.touches[0].clientY};
-    if (ev.changedTouches && ev.changedTouches.length) return {x: ev.changedTouches[0].clientX, y: ev.changedTouches[0].clientY};
-    return {x: ev.clientX, y: ev.clientY};
+    var cx, cy;
+    if (ev.touches && ev.touches.length) { cx = ev.touches[0].clientX; cy = ev.touches[0].clientY; }
+    else if (ev.changedTouches && ev.changedTouches.length) { cx = ev.changedTouches[0].clientX; cy = ev.changedTouches[0].clientY; }
+    else { cx = ev.clientX; cy = ev.clientY; }
+
+    return toGamePoint(cx, cy);
   }
 
   function onPointerDown(ev){
@@ -594,9 +581,7 @@
     updateRopeLine();
   }
 
-  function onPointerUp(ev){
-    dragging = false;
-  }
+  function onPointerUp(){ dragging = false; }
 
   gameEl.addEventListener("mousedown", onPointerDown);
   window.addEventListener("mousemove", onPointerMove);
@@ -604,30 +589,29 @@
 
   gameEl.addEventListener("touchstart", function(e){ onPointerDown(e); }, {passive:false});
   window.addEventListener("touchmove", function(e){ onPointerMove(e); }, {passive:false});
-  window.addEventListener("touchend", function(e){ onPointerUp(e); }, {passive:false});
+  window.addEventListener("touchend", function(){ onPointerUp(); }, {passive:false});
 
-    function updateRopeLine(){
-      if (!ropeTaken || !attachedAnimal){
-        hideRopeLine();
-        return;
-      }
-    
-      ropeLine.setAttribute("opacity", "1");
-      ropeKnot.setAttribute("opacity", "0"); // если узелок не нужен — скрываем
-    
-      // начало верёвки — у животного (чуть выше центра)
-      var x1 = attachedAnimal.x;
-      var y1 = attachedAnimal.y - 18;
-    
-      // конец верёвки — туда, куда ведёшь
-      var x2 = ropePos.x;
-      var y2 = ropePos.y;
-    
-      ropeLine.setAttribute("x1", x1 - gameRect.left);
-      ropeLine.setAttribute("y1", y1 - gameRect.top);
-      ropeLine.setAttribute("x2", x2 - gameRect.left);
-      ropeLine.setAttribute("y2", y2 - gameRect.top);
+  function updateRopeLine(){
+    if (!ropeTaken || !attachedAnimal){
+      hideRopeLine();
+      return;
     }
+
+    ropeLine.setAttribute("opacity", "1");
+    ropeKnot.setAttribute("opacity", "0");
+
+    // ВСЁ В GAME coords (без вычитаний rect)
+    var x1 = attachedAnimal.x;
+    var y1 = attachedAnimal.y - 18;
+
+    var x2 = ropePos.x;
+    var y2 = ropePos.y;
+
+    ropeLine.setAttribute("x1", x1);
+    ropeLine.setAttribute("y1", y1);
+    ropeLine.setAttribute("x2", x2);
+    ropeLine.setAttribute("y2", y2);
+  }
 
   function hideRopeLine(){
     ropeLine.setAttribute("opacity", "0");
@@ -638,15 +622,14 @@
   function handlePlaceCheck(a){
     if (a.placed) return;
 
-    var ar = a.el.getBoundingClientRect();
+    var ar = rectToGameRect(a.el.getBoundingClientRect());
     var pid = targetPenId(a.id);
     var correctRect = getPenHitRect(pid);
 
     if (correctRect && rectsIntersect(ar, correctRect)){
-      // магнитим в центр загона
-    var pen = pens.find(function(p){ return p.getAttribute("data-pen-id")===pid; });
+      var pen = pens.find(function(p){ return p.getAttribute("data-pen-id")===pid; });
       if (pen){
-        var pr = pen.getBoundingClientRect();
+        var pr = rectToGameRect(pen.getBoundingClientRect());
         a.x = pr.left + pr.width/2;
         a.y = pr.top + pr.height*0.55;
         setAnimalPosition(a);
@@ -654,7 +637,6 @@
 
       a.placed = true;
 
-      // ВАЖНО: после одного животного — поводок “сдается”
       attachedAnimal = null;
       hideTopPenIcon();
       ropeTaken = false;
@@ -669,7 +651,6 @@
   function checkAllPlaced(){
     var ok = animals.every(function(a){ return a.placed; });
     if (!ok) return;
-
     allPlaced = true;
     showFinalOverlay();
   }
@@ -706,29 +687,23 @@
     var seconds = dt / 1000;
 
     if (gameStarted && !allPlaced){
-      gameRect = gameEl.getBoundingClientRect();
-      centerRect = centerArea.getBoundingClientRect();
-
-      var cr = centerRect;
+      // границы центра в GAME coords
+      var cr = rectToGameRect(centerArea.getBoundingClientRect());
 
       animals.forEach(function(a){
         if (a.placed) return;
 
         if (attachedAnimal === a && ropeTaken){
-          // улучшенная “поводковая” физика: пружина к ropePos
           var dx = (ropePos.x - a.x);
           var dy = (ropePos.y - a.y);
 
-          // сила притяжения
           var pull = 10.5;
           a.vx += dx * pull * seconds * 0.02;
           a.vy += dy * pull * seconds * 0.02;
 
-          // трение
           a.vx *= 0.92;
           a.vy *= 0.92;
 
-          // ограничение скорости (чтобы не улетали)
           var maxV = 0.45;
           if (a.vx > maxV) a.vx = maxV;
           if (a.vx < -maxV) a.vx = -maxV;
@@ -738,7 +713,7 @@
           a.x += a.vx * seconds * 260;
           a.y += a.vy * seconds * 260;
 
-          // границы центра
+          // границы центра (GAME coords)
           var marginX = cr.width*0.06;
           var marginY = cr.height*0.06;
           if (a.x < cr.left + marginX) { a.x = cr.left + marginX; a.vx = 0; }
@@ -749,9 +724,7 @@
           setAnimalPosition(a);
           handlePlaceCheck(a);
           updateRopeLine();
-
         } else {
-          // обычное “брожение” пока не поймали
           a.vx += (Math.random()*0.04 - 0.02) * seconds;
           a.vy += (Math.random()*0.04 - 0.02) * seconds;
 
@@ -781,62 +754,6 @@
   }
 
   requestAnimationFrame(function(t){ lastTime=t; loop(t); });
-
-// ================== FIT (NO STRETCH) + RESCALE POSITIONS ==================
-var lastCenterRectForScale = null;
-var lastGameRectForScale = null;
-
-function fitGame(){
-  var baseW = 1280;
-  var baseH = 720;
-
-  // Ескі rect-терді сақтап аламыз (масштаб ауыспай тұрып)
-  var oldCenter = centerArea.getBoundingClientRect();
-  var oldGame = gameEl.getBoundingClientRect();
-
-  var scale = Math.min(window.innerWidth / baseW, window.innerHeight / baseH);
-  document.documentElement.style.setProperty("--scale", String(scale));
-
-  // transform қолданылғаннан кейін браузер жаңа өлшемді келесі кадрда нақтылайды
-  requestAnimationFrame(function(){
-    // Жаңа rect-тер
-    var newCenter = centerArea.getBoundingClientRect();
-    var newGame = gameEl.getBoundingClientRect();
-
-    // Коэффициенттер (әдетте бірдей, бірақ қауіпсіз болу үшін бөлек аламыз)
-    var kx = newCenter.width / oldCenter.width;
-    var ky = newCenter.height / oldCenter.height;
-
-    // Жануарлардың координаттарын жаңа центр-аймаққа пропорционал көшіру
-    animals.forEach(function(a){
-      if (a.placed) return;
-
-      a.x = newCenter.left + (a.x - oldCenter.left) * kx;
-      a.y = newCenter.top  + (a.y - oldCenter.top)  * ky;
-
-      setAnimalPosition(a);
-    });
-
-    // Егер сүйреп жатсаң — ropePos та бірге жылжысын
-    if (attachedAnimal && ropeTaken){
-      ropePos.x = newCenter.left + (ropePos.x - oldCenter.left) * kx;
-      ropePos.y = newCenter.top  + (ropePos.y - oldCenter.top)  * ky;
-    }
-
-    // Жаңартып қоямыз
-    gameRect = newGame;
-    centerRect = newCenter;
-    updateRopeLine();
-
-    lastCenterRectForScale = newCenter;
-    lastGameRectForScale = newGame;
-  });
-}
-
-window.addEventListener("resize", fitGame, {passive:true});
-fitGame();
-
-
 </script>
 </body>
 </html>
